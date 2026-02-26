@@ -1,0 +1,88 @@
+version: 2
+
+models:
+  - name: gold_servidores_credito
+    description: >
+      Tabela consolidada (One Big Table - OBT) contendo o perfil de crédito, risco e ocupação dos servidores públicos federais (SIAPE). 
+      Modelada especificamente para otimizar o consumo dos times de Modelagem de Risco e Políticas de Crédito.
+    
+    columns:
+      - name: posicao_base
+        description: "Chave de partição física. Representa a safra/mês de referência da folha de pagamento (Formato: YYYYMM)."
+        type: string
+        tests:
+          - not_null
+          
+      - name: Id_SERVIDOR_PORTAL
+        description: "Chave primária única do servidor/pensionista gerada pelo Portal da Transparência."
+        type: string
+        tests:
+          - not_null
+          
+      - name: cpf_mascarado
+        description: "CPF do servidor com máscara de privacidade aplicada pelo governo (LGPD). Ex: ***.123.456-**"
+        type: string
+        tests:
+          - not_null
+
+      - name: situacao_vinculo
+        description: "Indica o nível de estabilidade empregatícia do cliente (Ex: ATIVO PERMANENTE, CONTRATO TEMPORARIO). Usado nas réguas de aprovação de crédito."
+        type: string
+        
+      - name: cargo
+        description: "Descrição limpa e padronizada do cargo efetivo do servidor."
+        type: string
+        
+      - name: orgao_lotacao
+        description: "Órgão de origem do servidor. Usado para identificar clientes premium (Ex: Banco Central, Receita Federal)."
+        type: string
+        
+      - name: uf_exercicio
+        description: "Estado (UF) onde o servidor está exercendo a função atualmente. Útil para mapas de calor e campanhas regionais."
+        type: string
+        
+      - name: jornada_trabalho
+        description: "Carga horária semanal. Valores como 'DEDICAÇÃO EXCLUSIVA' indicam restrição legal a outras fontes de renda formal."
+        type: string
+
+      - name: renda_bruta
+        description: "Valor total da remuneração básica do servidor antes de qualquer desconto."
+        type: decimal
+        
+      - name: renda_liquida_estimada
+        description: "Remuneração após as deduções obrigatórias (IRRF, PSS, Previdência). Métrica principal para cálculo de limite de crédito."
+        type: decimal
+        
+      - name: imposto_retido_fonte
+        description: "Valor descontado via Imposto de Renda Retido na Fonte (IRRF)."
+        type: decimal
+        
+      - name: gratificacao_natalina
+        description: "Volume financeiro pago a título de 13º salário na safra atual."
+        type: decimal
+
+      - name: flag_afastado_mes
+        description: "Se True, indica que o servidor esteve em algum tipo de licença/afastamento no mês, sinalizando alerta para o motor de risco."
+        type: boolean
+        tests:
+          - not_null
+        
+      - name: flag_observacao_restritiva
+        description: "Se True, indica que o servidor possui anotações de teto constitucional ou redutores salariais."
+        type: boolean
+        tests:
+          - not_null
+
+      - name: fonte_dado_cadastro
+        description: "Linhagem física (URI) indicando de qual arquivo CSV cru originou-se o dado cadastral deste registro."
+        type: string
+        
+      - name: fonte_dado_remuneracao
+        description: "Linhagem física (URI) indicando de qual arquivo CSV cru originou-se a informação financeira deste registro."
+        type: string
+        
+      - name: timestamp_carga_gold
+        description: "Data e hora exata em que o pipeline atualizou este registro na Camada Gold."
+        type: timestamp
+        tests:
+          - not_null
